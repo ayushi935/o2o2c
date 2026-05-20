@@ -1,0 +1,11 @@
+import { ReactNode } from 'react';
+export const Card=({title,children}:{title?:string;children:ReactNode})=><div className='bg-white rounded-xl border border-slate-200 p-4 shadow-sm'>{title&&<h3 className='font-semibold mb-3'>{title}</h3>}{children}</div>;
+export const Badge=({text}:{text:string})=><span className='px-2 py-1 text-xs rounded bg-slate-100'>{text}</span>;
+export const StatusBadge=({status}:{status:string})=><span className='px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700'>{status}</span>;
+export const MetricCard=({label,value}:{label:string;value:string|number})=><Card><p className='text-xs text-slate-500'>{label}</p><p className='text-2xl font-bold'>{value}</p></Card>;
+export const DataTable=({cols,rows}:{cols:string[];rows:(string|number|ReactNode)[][]})=><div className='overflow-auto'><table className='w-full text-sm'><thead><tr>{cols.map(c=><th key={c} className='text-left p-2 border-b'>{c}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.map((c,j)=><td key={j} className='p-2 border-b'>{c}</td>)}</tr>)}</tbody></table></div>;
+export const LifecycleStepper=({steps,current}:{steps:string[];current:number})=><div className='flex gap-2 flex-wrap'>{steps.map((s,i)=><span key={s} className={`px-2 py-1 rounded text-xs ${i<=current?'bg-emerald-100 text-emerald-700':'bg-slate-100'}`}>{i+1}. {s}</span>)}</div>;
+export const EvidenceChecklist=({items}:{items:{label:string;ok:boolean}[]})=><ul className='space-y-1'>{items.map(i=><li key={i.label} className='text-sm'>{i.ok?'✅':'❌'} {i.label}</li>)}</ul>;
+export const ActionPanel=({children}:{children:ReactNode})=><div className='bg-slate-900 text-white rounded-xl p-4'>{children}</div>;
+export const Drawer=({title,children}:{title:string;children:ReactNode})=><Card title={title}>{children}</Card>;
+export const Modal=({title,children}:{title:string;children:ReactNode})=><div className='bg-white border rounded-xl p-4'><h4 className='font-semibold'>{title}</h4>{children}</div>;
