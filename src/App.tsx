@@ -2,180 +2,140 @@ import { useMemo, useState } from 'react';
 import AppShell from './layout/AppShell';
 import Sidebar from './layout/Sidebar';
 import Card from './components/Card';
-import DataTable from './components/DataTable';
 
-type Role =
-  | 'Admin'
-  | 'BD'
-  | 'GI'
-  | 'RC Pod'
-  | 'Business Lead'
-  | 'GI Lead'
-  | 'Pod Sponsor'
-  | 'Delivery-track Sponsor'
-  | 'Platform-track Sponsor'
-  | 'Rishabh / CXO Lead'
-  | 'Prateek / CXO Lead'
-  | 'CFO / Somesh'
-  | 'Finance Ops'
-  | 'CCOO / Viprav'
-  | 'Tender Team'
-  | 'Delivery Pod Lead'
-  | 'Delivery Pod User'
-  | 'Program Pod User'
-  | 'Mission M&E'
-  | 'Founders Office'
-  | 'Portfolio Intelligence'
-  | 'Readonly';
+type Role = 'Admin'|'BD'|'GI'|'RC Pod'|'Business Lead'|'GI Lead'|'Pod Sponsor'|'Delivery-track Sponsor'|'Platform-track Sponsor'|'Rishabh / CXO Lead'|'Prateek / CXO Lead'|'CFO / Somesh'|'Finance Ops'|'CCOO / Viprav'|'Tender Team'|'Delivery Pod Lead'|'Delivery Pod User'|'Program Pod User'|'Mission M&E'|'Founders Office'|'Portfolio Intelligence'|'Readonly';
+type StepStatus = 'Not Started'|'In Progress'|'Blocked'|'Completed'|'Terminal';
+type Nav = 'Governance Journey'|'O2O Workspace'|'O2C Workspace'|'PAB Governance'|'Finance & CM2'|'Pod Capacity'|'Audit Log'|'Admin / RBAC';
 
-type OpportunityStage = 'Opportunity Registration' | 'Proposal' | 'Pre-Bid PAB' | 'Financial Approval' | 'RFP/Bid' | 'Post-Bid PAB' | 'MOU' | 'O2C Transitioned';
-type ProjectStage = 'Milestone Setup' | 'Proof Upload' | 'Invoice Trigger' | 'Collection Tracking' | 'CM2 Tracking' | 'Mid-Project PAB' | 'Post-Project PAB' | 'Collection Complete';
+const ROLES: Role[] = ['Admin','BD','GI','RC Pod','Business Lead','GI Lead','Pod Sponsor','Delivery-track Sponsor','Platform-track Sponsor','Rishabh / CXO Lead','Prateek / CXO Lead','CFO / Somesh','Finance Ops','CCOO / Viprav','Tender Team','Delivery Pod Lead','Delivery Pod User','Program Pod User','Mission M&E','Founders Office','Portfolio Intelligence','Readonly'];
+const NAV_ITEMS: Nav[] = ['Governance Journey','O2O Workspace','O2C Workspace','PAB Governance','Finance & CM2','Pod Capacity','Audit Log','Admin / RBAC'];
 
-const ROLES: Role[] = [
-  'Admin','BD','GI','RC Pod','Business Lead','GI Lead','Pod Sponsor','Delivery-track Sponsor','Platform-track Sponsor','Rishabh / CXO Lead','Prateek / CXO Lead','CFO / Somesh','Finance Ops','CCOO / Viprav','Tender Team','Delivery Pod Lead','Delivery Pod User','Program Pod User','Mission M&E','Founders Office','Portfolio Intelligence','Readonly'
-];
-
-const ACTIONS = [
-  'Create opportunity','Edit opportunity','Request Pre-Bid PAB','Convene Pre-Bid PAB','Record Pre-Bid PAB decision','Validate platform feasibility','Validate delivery feasibility','Submit for financial approval','CFO sign-off','Lock CM2','Upload RFP','Upload technical bid','Upload financial bid','Upload EMD proof','Mark Bid Submitted','Upload Award Communication','Mark Won','Mark Lost','Mark No-Bid','Draft/update MOU','Upload Signed MOU','Trigger O2C transition','Create milestones','Edit milestones','Upload delivery proof','Upload MoM','Upload customer acknowledgement','Verify proof','Reject proof','Trigger invoice','Issue invoice','Record payment','Confirm collection','Log scope change','Assess scope change','Request Mid-Project PAB','Convene Mid-Project PAB','Complete Post-Project PAB','Archive record','Reactivate record','Soft delete record','Manage users','Manage roles','Manage checklist templates','Manage master data','View audit log','Export audit log'
-] as const;
-
-const PATHS = [
-  '/executive-home','/o2o','/o2o/new','/o2o/OP-001','/o2o/OP-001/proposal','/o2o/OP-001/pre-bid-pab','/o2o/OP-001/financial-approval','/o2o/OP-001/rfp-bid','/o2o/OP-001/post-bid-pab','/o2o/OP-001/mou','/o2c','/o2c/PR-001','/o2c/PR-001/milestones','/o2c/PR-001/proofs','/o2c/PR-001/invoices','/o2c/PR-001/collections','/o2c/PR-001/cm2','/o2c/PR-001/scope-changes','/pab','/finance','/pod-capacity','/audit','/admin-rbac'
-];
-
-const NAV: Record<Role, string[]> = {
-  Admin: PATHS,
-  BD: ['/executive-home', '/o2o', '/o2o/new', '/o2o/OP-001', '/o2o/OP-001/proposal', '/audit'],
-  GI: ['/executive-home', '/o2o', '/o2o/OP-001', '/o2o/OP-001/proposal', '/o2o/OP-001/rfp-bid', '/o2o/OP-001/mou'],
-  'RC Pod': ['/executive-home','/o2o','/o2o/new','/o2o/OP-001','/o2o/OP-001/proposal','/o2c','/o2c/PR-001','/o2c/PR-001/milestones','/o2c/PR-001/proofs','/o2c/PR-001/collections','/o2c/PR-001/cm2','/audit'],
-  'Business Lead': ['/executive-home', '/o2o', '/o2o/OP-001', '/o2o/OP-001/proposal', '/o2o/OP-001/rfp-bid'],
-  'GI Lead': ['/executive-home', '/o2o', '/o2o/OP-001/mou', '/o2o/OP-001/proposal'],
-  'Pod Sponsor': ['/executive-home', '/o2o', '/o2o/OP-001', '/o2c', '/o2c/PR-001', '/o2c/PR-001/scope-changes'],
-  'Delivery-track Sponsor': ['/executive-home', '/o2c', '/o2c/PR-001', '/o2c/PR-001/scope-changes', '/pab'],
-  'Platform-track Sponsor': ['/executive-home', '/o2o', '/o2o/OP-001/proposal', '/pab'],
-  'Rishabh / CXO Lead': ['/executive-home', '/pab', '/o2o/OP-001/pre-bid-pab', '/o2c/PR-001/cm2', '/audit'],
-  'Prateek / CXO Lead': ['/executive-home', '/pab', '/o2o/OP-001/pre-bid-pab', '/o2o/OP-001/post-bid-pab', '/audit'],
-  'CFO / Somesh': ['/executive-home', '/finance', '/o2o/OP-001/financial-approval', '/o2o/OP-001/rfp-bid', '/audit'],
-  'Finance Ops': ['/executive-home', '/o2c', '/o2c/PR-001/proofs', '/o2c/PR-001/invoices', '/o2c/PR-001/collections', '/audit'],
-  'CCOO / Viprav': ['/executive-home', '/o2o/OP-001/rfp-bid', '/finance'],
-  'Tender Team': ['/executive-home', '/o2o', '/o2o/OP-001/rfp-bid', '/audit'],
-  'Delivery Pod Lead': ['/executive-home', '/o2c', '/o2c/PR-001/milestones', '/o2c/PR-001/scope-changes'],
-  'Delivery Pod User': ['/executive-home', '/o2c', '/o2c/PR-001/proofs'],
-  'Program Pod User': ['/executive-home', '/o2c', '/o2c/PR-001/proofs', '/o2c/PR-001/scope-changes'],
-  'Mission M&E': ['/executive-home', '/o2c', '/o2c/PR-001', '/o2c/PR-001/cm2', '/pab'],
-  'Founders Office': ['/executive-home', '/pab', '/o2c', '/audit'],
-  'Portfolio Intelligence': ['/executive-home', '/o2c', '/audit'],
-  Readonly: ['/executive-home', '/o2o', '/o2c', '/audit']
+const roleFocus: Record<Role,string> = {
+  Admin:'Full governance control and RBAC oversight.', BD:'Opportunity Registration + Proposal Stage actions highlighted.', GI:'MOU + scoping actions highlighted.', 'RC Pod':'Proposal, PAB request, proof upload, collection tracking highlighted.', 'Business Lead':'Commercial structuring and no-bid/lost governance highlighted.', 'GI Lead':'MOU anchoring and operational realism highlighted.', 'Pod Sponsor':'Capacity + committability + escalation highlighted.', 'Delivery-track Sponsor':'Capacity constraints and mid-project interventions highlighted.', 'Platform-track Sponsor':'Platform feasibility and dependency readiness highlighted.', 'Rishabh / CXO Lead':'Platform feasibility validation + PAB convening highlighted.', 'Prateek / CXO Lead':'Delivery feasibility validation + PAB convening highlighted.', 'CFO / Somesh':'Financial Approval Gate + CM2 lock highlighted.', 'Finance Ops':'Proof review, invoicing, collections highlighted.', 'CCOO / Viprav':'Pricing strategy references in bid finance highlighted.', 'Tender Team':'RFP & Bid Management actions highlighted.', 'Delivery Pod Lead':'Milestones and scope impact highlighted.', 'Delivery Pod User':'Delivery evidence support highlighted.', 'Program Pod User':'MoM + customer acknowledgement highlighted.', 'Mission M&E':'Project health and risk signal visibility highlighted.', 'Founders Office':'Governance oversight, risks, escalations, audit highlighted.', 'Portfolio Intelligence':'Portfolio signals and risk visibility highlighted.', Readonly:'Map and records visible, no mutation actions.'
 };
 
-const PERMS: Record<Role, Set<string>> = Object.fromEntries(ROLES.map((r) => [r, new Set<string>()])) as Record<Role, Set<string>>;
-const add = (role: Role, list: string[]) => list.forEach((a) => PERMS[role].add(a));
-add('Admin', [...ACTIONS]);
-add('BD', ['Create opportunity', 'Edit opportunity', 'Request Pre-Bid PAB', 'Submit for financial approval']);
-add('GI', ['Edit opportunity', 'Upload technical bid', 'Draft/update MOU', 'Upload Signed MOU']);
-add('RC Pod', ['Create opportunity', 'Edit opportunity', 'Request Pre-Bid PAB', 'Submit for financial approval', 'Create milestones', 'Upload delivery proof', 'Record payment', 'Request Mid-Project PAB']);
-add('Business Lead', ['Edit opportunity', 'Mark Lost', 'Mark No-Bid', 'Submit for financial approval']);
-add('GI Lead', ['Draft/update MOU', 'Upload Signed MOU']);
-add('Pod Sponsor', ['Assess scope change', 'Mark Lost', 'Mark No-Bid', 'Archive record']);
-add('Delivery-track Sponsor', ['Assess scope change', 'Request Mid-Project PAB']);
-add('Platform-track Sponsor', ['Validate platform feasibility']);
-add('Rishabh / CXO Lead', ['Convene Pre-Bid PAB', 'Validate platform feasibility', 'Convene Mid-Project PAB']);
-add('Prateek / CXO Lead', ['Convene Pre-Bid PAB', 'Validate delivery feasibility', 'Convene Mid-Project PAB']);
-add('CFO / Somesh', ['CFO sign-off', 'Lock CM2']);
-add('Finance Ops', ['Verify proof', 'Reject proof', 'Issue invoice', 'Confirm collection', 'Record payment', 'View audit log']);
-add('CCOO / Viprav', ['Upload financial bid']);
-add('Tender Team', ['Upload RFP', 'Upload technical bid', 'Upload financial bid', 'Upload EMD proof', 'Mark Bid Submitted', 'Upload Award Communication', 'Mark Won', 'Mark Lost', 'Mark No-Bid']);
-add('Delivery Pod Lead', ['Edit milestones', 'Log scope change', 'Assess scope change']);
-add('Delivery Pod User', ['Upload delivery proof']);
-add('Program Pod User', ['Upload MoM', 'Upload customer acknowledgement', 'Request Mid-Project PAB']);
-add('Mission M&E', ['Request Mid-Project PAB']);
-add('Founders Office', ['View audit log']);
-add('Portfolio Intelligence', ['View audit log']);
+type Step = { name: string; status: StepStatus; records: number; owner: string; evidence: string; blocker: string; cta: string; workspace: Nav; }; 
+type Phase = { name: string; purpose: string; primaryOwner: string; sourceRule: string; steps: Step[]; };
 
-export default function App() {
-  const [role, setRole] = useState<Role>('Admin');
-  const [path, setPath] = useState('/executive-home');
-  const [oppStage, setOppStage] = useState<OpportunityStage>('Opportunity Registration');
-  const [projectStage, setProjectStage] = useState<ProjectStage>('Milestone Setup');
-  const [cfoSigned, setCfoSigned] = useState(false);
-  const [awardEvidence, setAwardEvidence] = useState(false);
-  const [signedMou, setSignedMou] = useState(false);
-  const [proofVerified, setProofVerified] = useState(false);
-  const [collectionPct, setCollectionPct] = useState(0);
-  const [audit, setAudit] = useState<string[]>(['opportunity_created', 'stage_changed:Opportunity Registration']);
+const PHASES: Phase[] = [
+  { name:'O2O: Opportunity to Signed MOU', purpose:'Qualify and govern opportunity until signed commercial closure.', primaryOwner:'Revenue Capture Pod + Business Lead', sourceRule:'[Source Rule] CFO sign-off is required before bid submission.', steps:[
+    {name:'Opportunity Registration',status:'In Progress',records:3,owner:'BD',evidence:'Budget signal, competitor intelligence, stakeholder mapping notes',blocker:'',cta:'Open Opportunity Intake',workspace:'O2O Workspace'},
+    {name:'Proposal Stage',status:'In Progress',records:2,owner:'RC Pod',evidence:'Problem framing, scope, assumptions, CM2 pricing sheet',blocker:'',cta:'Open Proposal Workspace',workspace:'O2O Workspace'},
+    {name:'Pre-Bid PAB',status:'In Progress',records:2,owner:'Rishabh / CXO Lead + Prateek / CXO Lead',evidence:'Proposal, CM2 sheet, feasibility validations, capacity read',blocker:'',cta:'Open Pre-Bid PAB',workspace:'PAB Governance'},
+    {name:'Financial Approval Gate',status:'Blocked',records:3,owner:'CFO / Somesh',evidence:'CM2 sheet, commercial risk note, payment milestone draft',blocker:'[Source Rule] No proposal moves to bid submission without CFO sign-off.',cta:'Open CFO Queue',workspace:'Finance & CM2'},
+    {name:'RFP & Bid Management',status:'Blocked',records:3,owner:'Tender Team',evidence:'RFP, technical bid, financial bid, EMD proof, submission acknowledgement',blocker:'[Source Rule] Won requires Award Communication evidence.',cta:'Open Bid Workspace',workspace:'O2O Workspace'},
+    {name:'Post-Bid PAB',status:'Not Started',records:1,owner:'Rishabh / CXO Lead + Prateek / CXO Lead',evidence:'Capacity readiness, execution plan, risk register',blocker:'',cta:'Open Post-Bid PAB',workspace:'PAB Governance'},
+    {name:'MOU Stage',status:'In Progress',records:2,owner:'GI + GI Lead',evidence:'Signed MOU upload and sign-offs',blocker:'[Source Rule] O2C starts only after signed MOU upload.',cta:'Open MOU Workspace',workspace:'O2O Workspace'}] },
+  { name:'O2O → O2C Transition', purpose:'System-governed handover from signed MOU to execution readiness.', primaryOwner:'RC Pod', sourceRule:'[Source Rule] O2C starts only after signed MOU upload.', steps:[
+    {name:'Signed MOU Uploaded',status:'In Progress',records:2,owner:'GI / GI Lead',evidence:'Signed MOU artifact',blocker:'',cta:'Review MOU Evidence',workspace:'O2O Workspace'},
+    {name:'O2C Project Auto-Created',status:'In Progress',records:1,owner:'System + RC Pod',evidence:'Transition event in audit',blocker:'',cta:'Open Transition Record',workspace:'O2C Workspace'},
+    {name:'RC Pod, Pod Sponsor, Business Lead, Products, Contract Value, CM2 Baseline carried forward',status:'Completed',records:1,owner:'RC Pod',evidence:'Carry-forward snapshot',blocker:'',cta:'Open Carry Forward Snapshot',workspace:'O2C Workspace'},
+    {name:'Milestone Setup Pending',status:'Blocked',records:1,owner:'Delivery Pod Lead',evidence:'Milestone draft and owners',blocker:'Milestones not fully configured.',cta:'Open Milestone Setup',workspace:'O2C Workspace'}] },
+  { name:'O2C: Signed MOU to Cash Realization', purpose:'Execute project-to-cash with evidence-led controls.', primaryOwner:'RC Pod + Finance Ops', sourceRule:'[Source Rule] Invoice trigger requires verified proof.', steps:[
+    {name:'Milestone Setup',status:'In Progress',records:3,owner:'Delivery Pod Lead',evidence:'Milestone sequence, payment split, proof types',blocker:'',cta:'Open Milestones',workspace:'O2C Workspace'},
+    {name:'Delivery Proof Upload',status:'In Progress',records:2,owner:'RC Pod + Delivery Pod User',evidence:'Proof, MoM, customer acknowledgement',blocker:'',cta:'Open Proof Upload',workspace:'O2C Workspace'},
+    {name:'Proof Review and Acceptance',status:'Blocked',records:2,owner:'Finance Ops',evidence:'Verified proof decision',blocker:'Pending finance verification.',cta:'Open Proof Review',workspace:'O2C Workspace'},
+    {name:'Invoice Trigger',status:'Blocked',records:2,owner:'Finance Ops',evidence:'Verified proof + invoice request',blocker:'[Source Rule] Invoice trigger requires verified proof.',cta:'Open Invoicing',workspace:'O2C Workspace'},
+    {name:'Collections Tracking',status:'In Progress',records:2,owner:'Finance Ops + RC Pod',evidence:'Payment reference and outstanding amount',blocker:'',cta:'Open Collections',workspace:'O2C Workspace'},
+    {name:'Expense and CM2 Tracking',status:'In Progress',records:1,owner:'CFO / Somesh + Finance Ops',evidence:'Baseline CM2 vs actual CM2',blocker:'',cta:'Open CM2 Tracker',workspace:'Finance & CM2'},
+    {name:'Product Revenue Attribution',status:'Not Started',records:1,owner:'Portfolio Intelligence',evidence:'Product-level revenue mapping',blocker:'[Open Question] Final owner confirmation pending PRD clarification.',cta:'Open Attribution',workspace:'O2C Workspace'}] },
+  { name:'Governance Interventions', purpose:'Handle cross-cutting risks and intervention-trigger workflows.', primaryOwner:'PAB Conveners + Sponsors', sourceRule:'[Source Rule] Mid-Project PAB triggers: scope change, timeline risk, margin erosion, government escalation, product change, delivery breakdown.', steps:[
+    {name:'Mid-Project PAB',status:'In Progress',records:1,owner:'Rishabh / CXO Lead + Prateek / CXO Lead',evidence:'Trigger context, financial impact, updated plan',blocker:'',cta:'Open Mid-Project PAB',workspace:'PAB Governance'},
+    {name:'Scope Change Log',status:'In Progress',records:2,owner:'Delivery Pod Lead',evidence:'Request details + decision + finance notified',blocker:'[Source Rule] Scope changes require 24h logging and 48h impact assessment.',cta:'Open Scope Change Log',workspace:'O2C Workspace'},
+    {name:'Timeline Risk',status:'Blocked',records:1,owner:'Pod Sponsor',evidence:'Recovery plan and capacity read',blocker:'Capacity constraints unresolved.',cta:'Open Risk Register',workspace:'PAB Governance'},
+    {name:'Margin Erosion / CM2 Variance',status:'Blocked',records:1,owner:'CFO / Somesh',evidence:'Variance analysis and correction action',blocker:'CM2 variance above tolerance.',cta:'Open CM2 Variance',workspace:'Finance & CM2'},
+    {name:'Government Escalation',status:'In Progress',records:1,owner:'GI',evidence:'Escalation notes and stakeholder plan',blocker:'',cta:'Open Escalation Desk',workspace:'PAB Governance'},
+    {name:'Product Change',status:'Not Started',records:0,owner:'Platform-track Sponsor',evidence:'Product feasibility and dependency impact',blocker:'',cta:'Open Product Change',workspace:'PAB Governance'},
+    {name:'Delivery Breakdown',status:'Not Started',records:0,owner:'Delivery-track Sponsor',evidence:'Root-cause and recovery accountability',blocker:'',cta:'Open Delivery Breakdown',workspace:'PAB Governance'}] },
+  { name:'Closure and Learning', purpose:'Close only after full collection and capture institutional learning.', primaryOwner:'RC Pod + Founders Office', sourceRule:'[Source Rule] Collection Complete requires 100% collection and RC Pod accountability continues until then.', steps:[
+    {name:'Collection Complete',status:'Blocked',records:1,owner:'Finance Ops + RC Pod',evidence:'100% collection proof',blocker:'[Source Rule] Collection Complete requires 100% collection.',cta:'Open Collection Ledger',workspace:'O2C Workspace'},
+    {name:'Post-Project PAB',status:'Not Started',records:1,owner:'Rishabh / CXO Lead + Prateek / CXO Lead',evidence:'Learning minutes and decisions',blocker:'Awaiting collection completion.',cta:'Open Post-Project PAB',workspace:'PAB Governance'},
+    {name:'Commercial Learning',status:'Not Started',records:0,owner:'Business Lead',evidence:'Pricing assumptions review',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Delivery Learning',status:'Not Started',records:0,owner:'Delivery Pod Lead',evidence:'Timeline realism retrospective',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Product Learning',status:'Not Started',records:0,owner:'Platform-track Sponsor',evidence:'Product gap register',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Government Learning',status:'Not Started',records:0,owner:'GI',evidence:'Stakeholder pattern findings',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Financial Learning',status:'Not Started',records:0,owner:'CFO / Somesh',evidence:'CM2 and expense outcome analysis',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Operational Learning',status:'Not Started',records:0,owner:'RC Pod',evidence:'Execution drag and process bottlenecks',blocker:'',cta:'Open Learning Capture',workspace:'Governance Journey'},
+    {name:'Archive',status:'Not Started',records:0,owner:'Admin',evidence:'Closure checklist and approval',blocker:'',cta:'Open Archive Control',workspace:'Admin / RBAC'}] }
+];
 
-  const can = (action: string) => PERMS[role].has(action);
-  const addAudit = (event: string) => setAudit((prev: string[]) => [`${new Date().toISOString()} ${event}`, ...prev]);
+const canMutate = (role: Role) => role !== 'Readonly' && role !== 'Founders Office' && role !== 'Portfolio Intelligence';
 
-  const actionBtn = (label: string, onClick: () => void, blocker?: string) => (
-    <button
-      disabled={!can(label) || Boolean(blocker) || role === 'Readonly'}
-      title={!can(label) || role === 'Readonly' ? 'Not permitted for selected role' : blocker}
-      className='rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50'
-      onClick={onClick}
-    >
-      {label} {blocker ? '[Source Rule]' : ''}
-    </button>
-  );
+export default function App(){
+  const [role,setRole]=useState<Role>('Admin');
+  const [nav,setNav]=useState<Nav>('Governance Journey');
+  const [openPhase,setOpenPhase]=useState<string | null>(PHASES[0].name);
+  const [selectedStep,setSelectedStep]=useState<string>('Opportunity Registration');
+  const [selectedRecord,setSelectedRecord]=useState<string>('OP-118');
+  const [audit,setAudit]=useState<string[]>(['opportunity_created','proposal_submitted','pre_bid_pab_decision_recorded']);
+  const queueCount = useMemo(()=>PHASES.flatMap(p=>p.steps).filter(s=>s.status==='Blocked' || s.status==='In Progress').length,[ ]);
 
-  const body = useMemo(() => {
-    if (path === '/admin-rbac') {
-      return <Card title='Admin / RBAC Matrix'>
-        <p className='mb-2 text-sm'>Source-confirmed roles shown directly. Unconfirmed ownerships are tagged [Open Question] and recommendations [Recommendation].</p>
-        <DataTable cols={['Role', 'Portal visibility', 'Approval rights', 'Audit visibility']} rows={ROLES.map((r) => [r, NAV[r].join(', '), PERMS[r].has('CFO sign-off') || PERMS[r].has('Record Pre-Bid PAB decision') ? 'Yes' : 'No', PERMS[r].has('View audit log') || r === 'Admin' ? 'Yes' : 'Limited'])} />
-        <div className='mt-3'><DataTable cols={['Action permission', 'Selected role']} rows={ACTIONS.map((a) => [a, can(a) ? 'Allowed' : 'Not permitted for selected role'])} /></div>
+  const phaseStats = (phase: Phase) => ({
+    records: phase.steps.reduce((a,s)=>a+s.records,0),
+    blocked: phase.steps.filter(s=>s.status==='Blocked').reduce((a,s)=>a+s.records,0),
+    pending: phase.steps.filter(s=>s.status==='In Progress').reduce((a,s)=>a+s.records,0),
+    overdue: phase.steps.filter(s=>s.status==='Blocked').length,
+  });
+
+  const openWorkspace = (workspace: Nav, step: string) => { setNav(workspace); setSelectedStep(step); };
+
+  const stepDetail = useMemo(()=>PHASES.flatMap(p=>p.steps).find(s=>s.name===selectedStep),[selectedStep]);
+
+  const lifecycleMap = <div className='space-y-4'>
+    <Card title='O2O → O2C Governance Journey'>
+      <p className='mb-2 text-sm'>Major phase → step → records/actions navigation. {roleFocus[role]}</p>
+      <p className='text-sm'>No technical route labels are shown; business workflow labels only.</p>
+    </Card>
+    {PHASES.map((phase)=>{
+      const stats = phaseStats(phase);
+      return <Card key={phase.name} title={phase.name}>
+        <div className='grid gap-2 text-sm md:grid-cols-3'>
+          <p><b>Purpose:</b> {phase.purpose}</p><p><b>Records:</b> {stats.records} | <b>Blocked:</b> {stats.blocked}</p><p><b>Pending approvals:</b> {stats.pending} | <b>Overdue:</b> {stats.overdue}</p>
+          <p><b>Primary owner:</b> {phase.primaryOwner}</p><p className='md:col-span-2'><b>Key source rule:</b> {phase.sourceRule}</p>
+        </div>
+        <button className='mt-3 rounded border px-3 py-1 text-sm' onClick={()=>setOpenPhase(openPhase===phase.name?null:phase.name)}>Open Phase</button>
+        {openPhase===phase.name && <div className='mt-3 grid gap-3 md:grid-cols-2'>
+          {phase.steps.map((step)=><div key={step.name} className='rounded border p-3 text-sm'>
+            <p className='font-semibold'>{step.name}</p>
+            <p>Status: <b>{step.status}</b></p><p>Records: {step.records}</p><p>Current owner role: {step.owner}</p>
+            <p>Required evidence: {step.evidence}</p>
+            <p>Blocking rule: {step.blocker || 'None'}</p>
+            <button className='mt-2 rounded border px-2 py-1' onClick={()=>openWorkspace(step.workspace,step.name)}>{step.cta}</button>
+          </div>)}
+        </div>}
       </Card>;
-    }
+    })}
+  </div>;
 
-    if (path === '/o2o') return <Card title='O2O Portal Workflow'>
-      <p className='mb-2 text-sm'>Journey: Opportunity Registration → Proposal → Pre-Bid PAB → Financial Approval → RFP/Bid → Post-Bid PAB → MOU Upload → O2C Transition.</p>
-      <p className='mb-2 text-sm'>Current Stage: <b>{oppStage}</b></p>
-      <div className='flex flex-wrap gap-2'>
-        {actionBtn('Create opportunity', () => { setOppStage('Opportunity Registration'); addAudit('opportunity_created'); setPath('/o2o/new'); })}
-        {actionBtn('Submit for financial approval', () => { setOppStage('Financial Approval'); addAudit('proposal_submitted'); setPath('/o2o/OP-001/financial-approval'); })}
-        {actionBtn('CFO sign-off', () => { setCfoSigned(true); setOppStage('RFP/Bid'); addAudit('cfo_signoff_recorded'); })}
-        {actionBtn('Mark Bid Submitted', () => addAudit('bid_submitted'), cfoSigned ? undefined : 'CFO sign-off missing')}
-        {actionBtn('Upload Award Communication', () => { setAwardEvidence(true); addAudit('award_communication_uploaded'); })}
-        {actionBtn('Mark Won', () => { setOppStage('Post-Bid PAB'); addAudit('status_changed:Won'); }, awardEvidence ? undefined : 'Award Communication evidence missing')}
-        {actionBtn('Upload Signed MOU', () => { setSignedMou(true); setOppStage('MOU'); addAudit('mou_uploaded'); setPath('/o2o/OP-001/mou'); })}
-        {actionBtn('Trigger O2C transition', () => { setOppStage('O2C Transitioned'); addAudit('o2o_to_o2c_transition_created'); setPath('/o2c/PR-001'); }, signedMou ? undefined : 'Signed MOU missing')}
+  const workspace = <Card title={nav}>
+    <p className='text-sm mb-3'>Current step: <b>{selectedStep}</b></p>
+    <div className='grid gap-3 md:grid-cols-2'>
+      <div className='rounded border p-3 text-sm'>
+        <p className='font-semibold'>Records in step</p>
+        <button className='mt-2 rounded border px-2 py-1' onClick={()=>setSelectedRecord('OP-118')}>OP-118 / PR-55</button>
       </div>
-    </Card>;
-
-    if (path.startsWith('/o2c')) return <Card title='O2C Execution Workflow'>
-      <p className='mb-2 text-sm'>Journey: Milestone Setup → Proof Upload → Invoice Trigger → Collection Tracking → CM2 Tracking → Mid-Project PAB → Post-Project PAB → Collection Complete.</p>
-      <p className='mb-2 text-sm'>Project Stage: <b>{projectStage}</b> | Collection: <b>{collectionPct}%</b> (RC Pod accountable until 100% [Source Rule])</p>
-      <div className='flex flex-wrap gap-2'>
-        {actionBtn('Create milestones', () => { setProjectStage('Milestone Setup'); addAudit('milestone_created'); setPath('/o2c/PR-001/milestones'); })}
-        {actionBtn('Upload delivery proof', () => { setProjectStage('Proof Upload'); addAudit('proof_uploaded'); setPath('/o2c/PR-001/proofs'); })}
-        {actionBtn('Verify proof', () => { setProofVerified(true); addAudit('proof_verified'); })}
-        {actionBtn('Issue invoice', () => { setProjectStage('Invoice Trigger'); addAudit('invoice_issued'); setPath('/o2c/PR-001/invoices'); }, proofVerified ? undefined : 'Proof not verified')}
-        {actionBtn('Record payment', () => { const next = Math.min(collectionPct + 50, 100); setCollectionPct(next); setProjectStage(next === 100 ? 'Collection Complete' : 'Collection Tracking'); addAudit('collection_updated'); setPath('/o2c/PR-001/collections'); })}
-        {actionBtn('Request Mid-Project PAB', () => { setProjectStage('Mid-Project PAB'); addAudit('mid_project_pab_requested'); })}
-        {actionBtn('Complete Post-Project PAB', () => { setProjectStage('Post-Project PAB'); addAudit('post_project_pab_completed'); })}
+      <div className='rounded border p-3 text-sm'>
+        <p className='font-semibold'>Step-specific actions</p>
+        <p>Owner: {stepDetail?.owner}</p>
+        <p>Evidence: {stepDetail?.evidence}</p>
+        <p>Blocker: {stepDetail?.blocker || 'None'}</p>
+        <button disabled={!canMutate(role)} title={!canMutate(role)?'Not permitted for selected role':''} className='mt-2 rounded border px-2 py-1 disabled:opacity-50'>Primary CTA: {stepDetail?.cta}</button>
       </div>
-    </Card>;
+      <div className='rounded border p-3 text-sm md:col-span-2'>
+        <p className='font-semibold'>Record detail panel — {selectedRecord}</p>
+        <p>Status: {stepDetail?.status} | Assigned: {stepDetail?.owner}</p>
+        <p>Audit: {audit.join(' → ')}</p>
+      </div>
+    </div>
+  </Card>;
 
-    if (path === '/audit') return <Card title='Audit Trail'>
-      <p className='mb-2'>{(can('View audit log') || role === 'Admin') ? 'Visible for selected role.' : 'Not permitted for selected role'}</p>
-      {actionBtn('Export audit log', () => addAudit('audit_exported'))}
-      <ul className='mt-3 list-disc pl-6 text-sm'>{audit.map((a) => <li key={a}>{a}</li>)}</ul>
-    </Card>;
-
-    return <Card title='Executive Home'>
-      <p className='text-sm'>Clickable portal mode enabled. Sidebar/page visibility, CTA visibility, approvals, and blockers are all role-sensitive.</p>
-      <p className='mt-2 text-sm'>[Source Rule] No role can bypass CFO gate, Award evidence gate, or Signed-MOU gate.</p>
-      <p className='mt-2 text-sm'>[Recommendation] Portfolio Intelligence is read-heavy unless PRD confirms action ownership.</p>
-      <p className='mt-2 text-sm'>[Open Question] Final owner for some cross-functional approvals remains flagged in RBAC matrix.</p>
-    </Card>;
-  }, [path, role, oppStage, projectStage, cfoSigned, awardEvidence, signedMou, proofVerified, collectionPct, audit]);
+  const content = nav==='Governance Journey' ? lifecycleMap : workspace;
 
   return <AppShell
-    sidebar={<Sidebar items={NAV[role]} current={path} setCurrent={setPath} />}
+    sidebar={<Sidebar items={NAV_ITEMS} current={nav} setCurrent={(v)=>setNav(v as Nav)} />}
     role={role}
     roles={ROLES}
-    onRoleChange={(r: string) => { const next = r as Role; setRole(next); setPath(NAV[next][0]); }}
-  >
-    {body}
-  </AppShell>;
+    onRoleChange={(r)=>setRole(r as Role)}
+    queueCount={queueCount}
+  >{content}</AppShell>;
 }
