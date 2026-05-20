@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
-export const Sidebar=({items,current,set}:{items:string[];current:string;set:(v:string)=>void})=><aside className='w-full md:w-64 bg-slate-950 text-slate-100 p-3 space-y-1'>{items.map(i=><button key={i} onClick={()=>set(i)} className={`w-full text-left px-3 py-2 rounded ${i===current?'bg-indigo-600':'hover:bg-slate-800'}`}>{i}</button>)}</aside>;
-export const Header=()=><header className='bg-white border-b p-4 flex justify-between'><h1 className='font-bold'>ConveGenius Governance OS</h1><p className='text-sm text-slate-500'>Evidence-led approvals</p></header>;
-export const AppShell=({sidebar,children}:{sidebar:ReactNode;children:ReactNode})=><div className='min-h-screen'><Header/><div className='md:flex'>{sidebar}<main className='flex-1 p-4'>{children}</main></div></div>;
+import Header from './Header';
+export default function AppShell({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
+  return <div className='min-h-screen'><Header /><div className='md:flex'>{sidebar}<main className='flex-1 p-4'>{children}</main></div></div>;
+}

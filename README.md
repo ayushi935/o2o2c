@@ -1,24 +1,24 @@
-# ConveGenius O2O → O2C Farming Governance Platform (Frontend Prototype)
+# ConveGenius O2O → O2C Governance Platform (UI Prototype v1)
 
-Governance-first prototype built using **Vite + React + TypeScript + Tailwind + lucide-react** with mock JSON data.
+Frontend prototype using Vite, React, TypeScript, Tailwind CSS, and lucide-react.
 
-## Setup
+## Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Structure
+## Folder structure
 
-- `src/components` reusable UI blocks
-- `src/data` mock JSON-like objects
-- `src/layout` shell, sidebar, header
+- `src/components` reusable components
+- `src/data` mock JSON data
+- `src/layout` app shell, sidebar, header
 - `src/pages` screen compositions
 - `src/types` domain types
-- `src/utils` utilities placeholder
+- `src/utils` helper constants/rules
 
-## Included screens
+## Screens implemented
 
 1. Executive Home
 2. O2O Pipeline
@@ -34,3 +34,14 @@ npm run dev
 12. Pod Capacity Dashboard
 13. Audit Log
 14. Admin / RBAC
+
+## Governance rules reflected in UI
+
+- O2C starts only after signed MOU upload.
+- CFO sign-off blocks bid submission.
+- Won requires award communication evidence.
+- Orders Won is evidence-led, not Kanban-column derived.
+- Revenue Capture Pod remains accountable until 100% collection.
+- Pre-Bid PAB decisions use: Go, Conditional Go, Hold, No-Go.
+- Mid-Project PAB triggers include timeline/margin and delivery risk events.
+- Soft-deleted records remain visible in audit.
