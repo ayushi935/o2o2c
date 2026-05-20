@@ -1,45 +1,54 @@
-# ConveGenius O2O to O2C Portal Prototype
+# ConveGenius O2O → O2C Governance Platform (UI Prototype v1)
 
-A complete runnable React + TypeScript + Tailwind UI prototype for the revised O2O to O2C Farming Governance platform.
+Frontend-only prototype using **Vite + React + TypeScript + Tailwind CSS + lucide-react** with **mock JSON data only**.
 
-## What is included
-
-- Vite React TypeScript app
-- Tailwind setup
-- Lucide icons
-- Complete `src/App.tsx` with reusable UI components
-- Mock data for opportunities, O2C projects, PABs, pod capacity, audit events, and RBAC
-- Screens for:
-  - Executive Home
-  - O2O Pipeline
-  - Opportunity Detail
-  - O2C Projects
-  - PAB Governance
-  - Finance and CM2
-  - Pod Capacity
-  - Audit Log
-  - Admin / RBAC
-
-## Run locally
+## Local setup
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite.
+Then open the local URL printed by Vite (typically `http://localhost:5173`).
 
-## Recommended Codex prompt
+### Recommended local environment
 
-Ask Codex to:
+- Node.js 18+ (or 20+)
+- npm 9+
 
-1. Split `src/App.tsx` into folders: `components`, `data`, `types`, `pages`, `layout`.
-2. Add React Router.
-3. Convert mock data into API service functions.
-4. Add create/edit drawers for opportunities, PABs, milestones, proofs, invoices, and collections.
-5. Add role-based action visibility.
-6. Add form validation for source rules:
-   - O2C starts only after signed MOU upload.
-   - CFO sign-off blocks bid submission.
-   - Won requires Award Communication evidence.
-   - Revenue Capture Pod remains accountable until 100 percent collection.
+## Folder structure
+
+- `src/components` reusable components
+- `src/data` mock JSON data
+- `src/layout` app shell, sidebar, header
+- `src/pages` screen compositions
+- `src/types` domain types
+- `src/utils` helper constants/rules
+
+## Screens implemented
+
+1. Executive Home
+2. O2O Pipeline
+3. Opportunity Detail
+4. PAB Governance
+5. Financial Approval Queue
+6. RFP & Bid Management
+7. MOU Workspace
+8. O2C Projects
+9. O2C Project Detail
+10. Milestone-to-Cash Tracker
+11. Finance & CM2 Dashboard
+12. Pod Capacity Dashboard
+13. Audit Log
+14. Admin / RBAC
+
+## Governance rules reflected in UI
+
+- O2C starts only after signed MOU upload.
+- CFO sign-off blocks bid submission.
+- Won requires award communication evidence.
+- Orders Won is evidence-led, not Kanban-column derived.
+- Revenue Capture Pod remains accountable until 100% collection.
+- Pre-Bid PAB decisions use: Go, Conditional Go, Hold, No-Go.
+- Mid-Project PAB triggers include timeline/margin and delivery risk events.
+- Soft-deleted records remain visible in audit.
