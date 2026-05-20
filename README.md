@@ -1,13 +1,20 @@
 # ConveGenius O2O → O2C Governance Platform (UI Prototype v1)
 
-Frontend prototype using Vite, React, TypeScript, Tailwind CSS, and lucide-react.
+Frontend-only prototype using **Vite + React + TypeScript + Tailwind CSS + lucide-react** with **mock JSON data only**.
 
-## Run
+## Local setup
 
 ```bash
 npm install
 npm run dev
 ```
+
+Then open the local URL printed by Vite (typically `http://localhost:5173`).
+
+### Recommended local environment
+
+- Node.js 18+ (or 20+)
+- npm 9+
 
 ## Folder structure
 
