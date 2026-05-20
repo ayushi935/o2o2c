@@ -1,0 +1,38 @@
+# Codex prompt to continue this portal
+
+You are working on a React + TypeScript + Tailwind app for the ConveGenius O2O to O2C Farming Governance Platform.
+
+Start from the existing runnable prototype. Do not redesign it as a generic CRM. Preserve these source-rule guardrails:
+
+- O2C starts only after signed MOU upload.
+- CFO sign-off blocks bid submission.
+- Won requires Award Communication evidence.
+- Orders Won must not be calculated from Kanban column position.
+- Revenue Capture Pod remains accountable until 100 percent collection.
+- Pre-Bid PAB decision values are Go, Conditional Go, Hold, No-Go.
+- Mid-Project PAB is triggered by scope changes, timeline risks, margin erosion, government escalations, product changes, or delivery breakdowns.
+- Soft-deleted records remain in audit.
+
+Next engineering tasks:
+
+1. Split `src/App.tsx` into:
+   - `src/layout/AppShell.tsx`
+   - `src/components/ui/*`
+   - `src/components/workflow/*`
+   - `src/pages/*`
+   - `src/data/mockData.ts`
+   - `src/types/index.ts`
+2. Add React Router.
+3. Add form drawers for:
+   - Add Opportunity
+   - Request PAB
+   - CFO Approval
+   - Upload Award Communication
+   - Upload Signed MOU
+   - Create Milestone
+   - Upload Delivery Proof
+   - Trigger Invoice
+   - Record Collection
+4. Add validation logic for the source rules.
+5. Add role-based action visibility using the RBAC table in the app.
+6. Keep the app runnable after each refactor.
